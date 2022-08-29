@@ -9,7 +9,13 @@ module.exports = {
             const jws = ctx.request.query.jws || (ctx.request.body && ctx.request.body.jws);
             console.log('onBeforeLogin JWS: ' + jws);
             let token = await security.verifyClientAssertionAndFetchPayload(jws);
-            console.log('onBeforeLogin JWS: ' + token);
+            console.log('onBeforeLogin API Key: ' + token.apiKey);
+            console.log('onBeforeLogin data' + token.data)
+
+            response = {
+                "status": "OK"
+            };
+            ctx.body = response;
             
         }
         else {
