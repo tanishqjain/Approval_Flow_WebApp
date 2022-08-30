@@ -25,7 +25,7 @@ module.exports = {
             try {
                 const record = {
                     partitionKey: "ApprovalList",
-                    rowKey: token.data.params.userName,
+                    rowKey: token.data.params.email,
                     isApproved: false
                 };
 
