@@ -16,33 +16,35 @@ module.exports = {
         if (ctx.request.query.jws || (ctx.request.body && ctx.request.body.jws)) {
 
             const jws = ctx.request.query.jws || (ctx.request.body && ctx.request.body.jws);
-            console.log('onBeforeLogin JWS: ' + jws);
+            console.log('onBeforeAccountRegister JWS: ' + jws);
 
             //Verify and Decode the JWT
             let token = await security.verifyClientAssertionAndFetchPayload(jws);
 
-            let response = {
-                "status": "FAIL",
-                "data": {
-                    "userFacingErrorMessage": "You are not authorized"
-                }
-            }
-
-            //Read the record from table
+            //Create a table entity
             try {
-                let result = await tableClient.getEntity('ApprovalList', token.data.params.loginId);
+                const record = {
+                    partitionKey: "ApprovalList",
+                    rowKey: token.data.params.userName,
+                    isApproved: false
+                };
 
-                if (result.isApproved === true) {
-                    response = {
-                        "status": "OK"
-                    }
+                //Insert the entity into Azure table storage
+                let result = await tableClient.createEntity(record);
+
+                //Error handling while setting the entity
+                if (result.etag == '' || result.etag === null) {
+                    console.log('Error in inserting record in table: ' + result)
                 }
+
+                //Send the response to Gigya extension
+                ctx.body = {
+                    "status": "OK"
+                };
 
             } catch (error) {
-                console.log('Error in reading record from table: ' + error)
+                console.log('Error in inserting record in table: ' + error)
             }
-
-            ctx.body = response;
 
         }
         else {
